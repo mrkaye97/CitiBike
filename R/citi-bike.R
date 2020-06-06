@@ -23,8 +23,7 @@ readfiles <- function(x) {
 
 cores <- detectCores()
 raw <- mclapply(c(202001:202004), readfiles, mc.cores = cores) %>%
-  rbindlist() %>%
-  sample_n(100000)
+  rbindlist()
 
 times <- function(ampm, stend, currcat) {
   dropcoords <- ifelse(stend == 's', list(c('eslon', 'eslat')), list(c('sslon', 'sslat'))) %>%
@@ -87,26 +86,34 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
          category.x = NULL,
          category.y = NULL) %>%
   filter(category != 'rem') %>%
-  mutate(count = replace_na(count, 0)) %>%
   group_by(ntacode, category, boro_name) %>%
   summarize(count = sum(count)) %>%
   ungroup() %>%
-  filter(boro_name %in% c('Manhattan', 'Brooklyn', 'Queens', 'Bronx'))
+  filter(boro_name == 'Manhattan') %>%
+  mutate(count = log(count),
+         category = fct_recode(category, 
+                               'AM Start' = 'ams',
+                               'AM End' = 'ame',
+                               'PM Start' = 'pms',
+                               'PM End' = 'pme'))
 
 plt <- df %>%
   ggplot()+
   geom_sf(aes(fill = count), na.rm = T)+
-  scale_fill_viridis()+
+  scale_fill_viridis(option = 'plasma', alpha = .8, na.value = 'black')+
   theme_fivethirtyeight()+
   theme(axis.text = element_blank())+
-  facet_wrap(~category)
+  facet_wrap(~category %>% fct_relevel(c('AM Start', 'AM End', 'PM Start', 'PM End')), 
+             nrow = 1)+
+  labs(title = 'Starting and Ending Neighborhoods for CitiBike Rides',
+       caption = 'Data comes from Jan-Apr 2020.\n AM commutes start and end between 7:00 and 9:00.\nPM Commutes start and end between 16:00 and 18:00')
 
-ggsave(filename = 'plt.png', 
-       device = 'png', 
-       path = '/users/matt/downloads/', 
+ggsave(filename = 'commutes.svg', 
+       device = 'svg', 
+       path = '/users/matt/documents/github/citibike/viz/', 
        plot = plt, 
        dpi = 'retina', 
-       width = 6,
+       width = 12,
        height = 8,
        units = 'in')
 
