@@ -5,6 +5,10 @@ library(lubridate)
 library(ggmap)
 library(data.table)
 library(viridis)
+library(sf)
+library(units)
+library(ggthemes)
+library(microbenchmark)
 
 readfiles <- function(x) {
   temp <- tempfile() 
@@ -20,28 +24,75 @@ raw <- c(202001:202004) %>%
   map(readfiles) %>%
   rbindlist() 
 
-df <- raw %>%
+
+times <- function(d, ampm, stend) {
+  timefilter <- ifelse(stend == 's', 'sthr', 'endhr')
+  grouping.vars <- ifelse(stend == 's', c(ssid, sslat, sslon), c(esid, eslat, eslon))
+  coords <- ifelse(stend == 's', c('sslon', 'sslat'), c('eslon', 'eslat'))
+  
+  am.start <- temp %>%
+    rename(sslat = 'start station latitude',
+           sslon = 'start station longitude',
+           eslat = 'end station latitude',
+           eslon = 'end station longitude',
+           ssid = 'start station id',
+           esid = 'end station id') %>%
+    mutate(sthr = hour(starttime),
+           endhr = hour(e)) %>%
+    filter(!!timefilter %in% c(7:9)) %>%
+    group_by(grouping.vars) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    mutate(count = count %>% log()) %>%
+    st_as_sf(coords = coords) %>%
+    st_set_crs(4326)
+}
+
+
+am.start <- temp %>%
   rename(sslat = 'start station latitude',
          sslon = 'start station longitude',
          eslat = 'end station latitude',
          eslon = 'end station longitude',
          ssid = 'start station id',
          esid = 'end station id') %>%
+  mutate(sthr = hour(starttime)) %>%
+  filter(sthr %in% c(7:9)) %>%
   group_by(ssid, sslat, sslon) %>%
   summarize(numstarts = n()) %>%
   ungroup() %>%
-  arrange(desc(numstarts)) %>%
-  slice(1:50)
-  
+  mutate(numstarts = numstarts %>% log()) %>%
+  st_as_sf(coords = c('sslon', 'sslat')) %>%
+  st_set_crs(4326)
 
-manhattan_map <- get_map(location = 'new york, new york', maptype = "watercolor", zoom = 12)
+am.end <- raw %>%
+  rename(sslat = 'start station latitude',
+         sslon = 'start station longitude',
+         eslat = 'end station latitude',
+         eslon = 'end station longitude',
+         ssid = 'start station id',
+         esid = 'end station id') %>%
+  filter(hour(endtime) %in% c(7:9)) %>%
+  group_by(esid, eslat, eslon) %>%
+  summarize(numends = n()) %>%
+  ungroup() %>%
+  mutate(numends = numends %>% log()) %>%
+  st_as_sf(coords = c('eslon', 'eslat')) %>%
+  st_set_crs(4326)
 
-ggmap(manhattan_map)
+nyc <- st_read('https://data.cityofnewyork.us/api/geospatial/cpf4-rkhq?method=export&format=GeoJSON', 
+              stringsAsFactors = F) %>%
+  st_as_sf() %>%
+  st_set_crs(4326)
 
-qmplot(sslon, sslat, data = df, maptype = "toner-background", color = numstarts, size = numstarts)+
-  scale_color_viridis()+
-  scale_alpha_continuous()
-  
-  
-  
+
+temp <- st_join(nyc, df, st_intersects, left = T)
+
+temp %>%
+  filter(boro_name == 'Manhattan') %>%
+  ggplot()+
+  geom_sf(aes(fill = numstarts), na.rm = T)+
+  scale_fill_viridis()+
+  theme_fivethirtyeight()+
+  theme(axis.text = element_blank())
   
