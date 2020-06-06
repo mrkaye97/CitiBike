@@ -9,6 +9,7 @@ library(sf)
 library(units)
 library(ggthemes)
 library(microbenchmark)
+library(parallel)
 
 readfiles <- function(x) {
   temp <- tempfile() 
@@ -20,17 +21,19 @@ readfiles <- function(x) {
   return(data)
 }
 
-raw <- c(202001:202004) %>%
-  map(readfiles) %>%
-  rbindlist() 
+cores <- detectCores()
+raw <- mclapply(c(202001:202004), readfiles, mc.cores = cores) %>%
+  rbindlist() %>%
+  sample_n(100000)
 
-
-times <- function(d, ampm, stend) {
-  timefilter <- ifelse(stend == 's', 'sthr', 'endhr')
-  grouping.vars <- ifelse(stend == 's', c(ssid, sslat, sslon), c(esid, eslat, eslon))
-  coords <- ifelse(stend == 's', c('sslon', 'sslat'), c('eslon', 'eslat'))
+times <- function(ampm, stend, currcat) {
+  dropcoords <- ifelse(stend == 's', list(c('eslon', 'eslat')), list(c('sslon', 'sslat'))) %>%
+    unlist()
+  keepcoords <- ifelse(stend == 's', list(c('sslon', 'sslat')), list(c('eslon', 'eslat'))) %>%
+    unlist()
   
-  am.start <- temp %>%
+  
+  raw %>%
     rename(sslat = 'start station latitude',
            sslon = 'start station longitude',
            eslat = 'end station latitude',
@@ -38,61 +41,74 @@ times <- function(d, ampm, stend) {
            ssid = 'start station id',
            esid = 'end station id') %>%
     mutate(sthr = hour(starttime),
-           endhr = hour(e)) %>%
-    filter(!!timefilter %in% c(7:9)) %>%
-    group_by(grouping.vars) %>%
-    summarize(count = n()) %>%
+           endhr = hour(stoptime)) %>%
+    filter(!!!ifelse(ampm == 'a', quos(sthr %in% c(7:9)), quos(sthr %in% c(16:18))),
+           !!!ifelse(ampm == 'a', quos(endhr %in% c(7:9)), quos(endhr %in% c(16:18)))) %>%
+    group_by(!!!ifelse(stend == 's', quos(ssid, sslat, sslon), quos(esid, eslat, eslon))) %>%
+    summarize(count = n(),
+              sslon = first(sslon),
+              sslat = first(sslat),
+              eslon = first(eslon),
+              eslat = first(eslat)) %>%
     ungroup() %>%
-    mutate(count = count %>% log()) %>%
-    st_as_sf(coords = coords) %>%
-    st_set_crs(4326)
+    mutate(category = currcat) %>%
+    select(-dropcoords) %>%
+    rename(lon = keepcoords[1],
+           lat = keepcoords[2])
 }
 
+ampms <- c('a', 'p', 'a', 'p')
+ses <- c('s', 's', 'e', 'e')
+cats <- c('ams', 'pms', 'ame', 'pme')
 
-am.start <- temp %>%
-  rename(sslat = 'start station latitude',
-         sslon = 'start station longitude',
-         eslat = 'end station latitude',
-         eslon = 'end station longitude',
-         ssid = 'start station id',
-         esid = 'end station id') %>%
-  mutate(sthr = hour(starttime)) %>%
-  filter(sthr %in% c(7:9)) %>%
-  group_by(ssid, sslat, sslon) %>%
-  summarize(numstarts = n()) %>%
-  ungroup() %>%
-  mutate(numstarts = numstarts %>% log()) %>%
-  st_as_sf(coords = c('sslon', 'sslat')) %>%
-  st_set_crs(4326)
-
-am.end <- raw %>%
-  rename(sslat = 'start station latitude',
-         sslon = 'start station longitude',
-         eslat = 'end station latitude',
-         eslon = 'end station longitude',
-         ssid = 'start station id',
-         esid = 'end station id') %>%
-  filter(hour(endtime) %in% c(7:9)) %>%
-  group_by(esid, eslat, eslon) %>%
-  summarize(numends = n()) %>%
-  ungroup() %>%
-  mutate(numends = numends %>% log()) %>%
-  st_as_sf(coords = c('eslon', 'eslat')) %>%
+full <- mcmapply(times, ampm = c(ampms), stend = c(ses), currcat = c(cats), SIMPLIFY = F, mc.cores = cores) %>%
+  rbindlist(fill = T) %>%
+  mutate(sid = coalesce(esid, ssid),
+         esid = NULL,
+         ssid = NULL,
+         category = category %>% as.factor()) %>%
+  st_as_sf(coords = c('lon', 'lat')) %>%
   st_set_crs(4326)
 
 nyc <- st_read('https://data.cityofnewyork.us/api/geospatial/cpf4-rkhq?method=export&format=GeoJSON', 
-              stringsAsFactors = F) %>%
+               stringsAsFactors = F) %>%
   st_as_sf() %>%
   st_set_crs(4326)
 
+all_nbhds <- expand_grid(ntacode = nyc %>% pull(ntacode) %>% unique(),
+                         category = cats) %>%
+  left_join(nyc, by = 'ntacode') %>%
+  st_as_sf()
 
-temp <- st_join(nyc, df, st_intersects, left = T)
+df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
+  mutate(category = case_when(is.na(category.y) ~ category.x,
+                              category.x == category.y ~ category.x,
+                              TRUE ~ 'rem'),
+         category.x = NULL,
+         category.y = NULL) %>%
+  filter(category != 'rem') %>%
+  mutate(count = replace_na(count, 0)) %>%
+  group_by(ntacode, category, boro_name) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  filter(boro_name %in% c('Manhattan', 'Brooklyn', 'Queens', 'Bronx'))
 
-temp %>%
-  filter(boro_name == 'Manhattan') %>%
+plt <- df %>%
   ggplot()+
-  geom_sf(aes(fill = numstarts), na.rm = T)+
+  geom_sf(aes(fill = count), na.rm = T)+
   scale_fill_viridis()+
   theme_fivethirtyeight()+
-  theme(axis.text = element_blank())
-  
+  theme(axis.text = element_blank())+
+  facet_wrap(~category)
+
+ggsave(filename = 'plt.png', 
+       device = 'png', 
+       path = '/users/matt/downloads/', 
+       plot = plt, 
+       dpi = 'retina', 
+       width = 6,
+       height = 8,
+       units = 'in')
+
+
+
