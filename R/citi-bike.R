@@ -90,7 +90,7 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
   summarize(count = sum(count)) %>%
   ungroup() %>%
   filter(boro_name == 'Manhattan') %>%
-  mutate(count = log(count),
+  mutate('Number of Rides (Log Scale)' = log(count),
          category = fct_recode(category, 
                                'AM Start' = 'ams',
                                'AM End' = 'ame',
@@ -99,7 +99,7 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
 
 plt <- df %>%
   ggplot()+
-  geom_sf(aes(fill = count), na.rm = T)+
+  geom_sf(aes(fill = `Number of Rides (Log Scale)`), na.rm = T)+
   scale_fill_viridis(option = 'plasma', alpha = .8, na.value = 'black')+
   theme_fivethirtyeight()+
   theme(axis.text = element_blank())+
