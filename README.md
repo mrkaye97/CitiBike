@@ -14,5 +14,5 @@
 #### Common Routes
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.png">
+<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.svg">
 </p>
