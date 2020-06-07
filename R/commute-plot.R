@@ -12,19 +12,13 @@ library(microbenchmark)
 library(parallel)
 library(bigreadr)
 
-readfiles <- function(x) {
-  temp <- tempfile() 
-  download.file(paste('https://s3.amazonaws.com/tripdata/', x, '-citibike-tripdata.csv.zip', sep = ""), temp)
-  data <- fread(cmd = paste('unzip -p', temp, sep = " "))
-  
-  do.call(file.remove, list(list.files(path = getwd(), pattern = '*.csv')))
-  
-  return(data)
-}
+PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-cores <- detectCores()
-raw <- mclapply(c(202001:202004), readfiles, mc.cores = cores) %>%
-  rbindlist()
+df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T) %>%
+  map(fread) %>%
+  rbindlist() %>%
+  filter(year(starttime) == 2019)
+
 
 times <- function(ampm, stend, currcat) {
   dropcoords <- ifelse(stend == 's', list(c('eslon', 'eslat')), list(c('sslon', 'sslat'))) %>%
@@ -32,8 +26,7 @@ times <- function(ampm, stend, currcat) {
   keepcoords <- ifelse(stend == 's', list(c('sslon', 'sslat')), list(c('eslon', 'eslat'))) %>%
     unlist()
   
-  
-  raw %>%
+  df %>%
     rename(sslat = 'start station latitude',
            sslon = 'start station longitude',
            eslat = 'end station latitude',
@@ -42,8 +35,8 @@ times <- function(ampm, stend, currcat) {
            esid = 'end station id') %>%
     mutate(sthr = hour(starttime),
            endhr = hour(stoptime)) %>%
-    filter(!!!ifelse(ampm == 'a', quos(sthr %in% c(7:9)), quos(sthr %in% c(16:18))),
-           !!!ifelse(ampm == 'a', quos(endhr %in% c(7:9)), quos(endhr %in% c(16:18)))) %>%
+    filter(!!!ifelse(ampm == 'a', quos(sthr %in% c(7:10)), quos(sthr %in% c(16:19))),
+           !!!ifelse(ampm == 'a', quos(endhr %in% c(7:10)), quos(endhr %in% c(16:19)))) %>%
     group_by(!!!ifelse(stend == 's', quos(ssid, sslat, sslon), quos(esid, eslat, eslon))) %>%
     summarize(count = n(),
               sslon = first(sslon),
@@ -107,7 +100,11 @@ plt <- df %>%
   facet_wrap(~category %>% fct_relevel(c('AM Start', 'AM End', 'PM Start', 'PM End')), 
              nrow = 1)+
   labs(title = 'Starting and Ending Neighborhoods for CitiBike Rides',
-       caption = 'Data comes from Jan-Apr 2020.\n AM commutes start and end between 7:00 and 9:00.\nPM Commutes start and end between 16:00 and 18:00')
+       caption = 'Data comes from March and April 2019.\n AM commutes start and end between 7:00 and 10:00.\nPM Commutes start and end between 16:00 and 19:00.') +
+  guides(shape = guide_legend(label.position = "bottom", 
+                              title.position = "top", title.vjust = 0.8), 
+         color = guide_legend(label.position = "top", 
+                              title.position = "top", title.vjust=0.4))
 
 ggsave(filename = 'commutes.svg', 
        device = 'svg', 
