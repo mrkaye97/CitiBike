@@ -12,6 +12,17 @@
 
 
 #### Common Routes
-<figure class="video_container">
-<iframe src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html"></iframe>
-</figure>
+<html> 
+  <head> 
+    <script src="jquery.js"></script> 
+    <script> 
+    $(function(){
+      $("#includedContent").load("/viz/common-routes.html"); 
+    });
+    </script> 
+  </head> 
+
+  <body> 
+     <div id="includedContent"></div>
+  </body> 
+</html>
