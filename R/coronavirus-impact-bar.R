@@ -12,7 +12,7 @@ library(parallel)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T) %>%
+df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T, pattern = "citibike*") %>%
   map(fread) %>%
   rbindlist() %>%
   rename(sslat = 'start station latitude',

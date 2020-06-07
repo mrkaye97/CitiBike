@@ -30,7 +30,7 @@ stations <- purrr::map(1:length(station_json), read_json) %>%
   mutate(address = paste(address, 'New York, NY', sep = ", "))
   
 
-df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T) %>%
+df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T, pattern = "citibike*") %>%
   map(fread) %>%
   rbindlist() %>%
   rename(sslat = 'start station latitude',
@@ -131,40 +131,10 @@ res <- res %>%
   
 
 
-df <- df %>%
+for_common_routes_leaflet <- df %>%
   mutate(routeid = routeid %>% as.factor()) %>%
   inner_join(res, by = 'routeid')
 
+write.csv(for_common_routes_leaflet, paste(PROJECT_ROOT, '/data/for_common_routes_leaflet.csv', sep = ""), row.names = F)
 
-grouped_coords <- function(coord, group, order) {
-  data_frame(coord = coord, group = group) %>%
-    group_by(group) %>%
-    purrrlyr::by_slice(~c(.$coord, NA), .to = "output") %>%
-    left_join(
-      data_frame(group = group, order = order) %>% 
-        distinct()) %>%
-    arrange(order) %>%
-    .$output %>%
-    unlist()
-}
-
-pal <- colorFactor(
-  palette = "magma", domain = NULL)
-
-# Map using Leaflet R
-l <- leaflet(res) %>%
-  addProviderTiles("CartoDB.Positron") %>% 
-  addPolylines(
-    lng = ~grouped_coords(lon, routeid, rownames(res)),
-    lat = ~grouped_coords(lat, routeid, rownames(res)),
-    color = ~pal(df$numroute))
-  
-  
-
-mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""))
-saveWidget(l, file= paste(PROJECT_ROOT, "/viz/common-routes.html", sep = ""))
-
-image_read(paste(PROJECT_ROOT, "/viz/common-routes.png", sep = "")) %>%
-  image_crop('300x450+335+150') %>%
-  image_write(paste(PROJECT_ROOT, "/viz/common-routes.svg", sep = ""), format = 'svg')
 
