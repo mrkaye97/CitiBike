@@ -9,6 +9,7 @@ library(sf)
 library(units)
 library(ggthemes)
 library(parallel)
+library(rprojroot)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
