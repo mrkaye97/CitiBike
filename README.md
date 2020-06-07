@@ -13,4 +13,4 @@
 
 #### Common Routes
 
-<html src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html">
+<object data="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html" type="text/html"></object>
