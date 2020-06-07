@@ -11,6 +11,7 @@ library(ggthemes)
 library(parallel)
 library(leaflet)
 library(rjson)
+library(mapview)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
@@ -157,5 +158,6 @@ l <- leaflet(res) %>%
     lat = ~grouped_coords(lat, routeid, rownames(res)),
     color = ~pal(df$numroute))
 
-
+mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""))
 saveWidget(l, file= paste(PROJECT_ROOT, "/viz/common-routes.html", sep = ""))
+
