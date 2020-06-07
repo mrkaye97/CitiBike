@@ -92,7 +92,12 @@ library(magick)
 
 ``` r
 library(rprojroot)
+library(widgetframe)
+```
 
+    ## Loading required package: htmlwidgets
+
+``` r
 knitr::opts_chunk$set(echo = T, warning = F, message = F)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
@@ -138,7 +143,8 @@ l <- leaflet(df) %>%
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
 
-l
+l %>%
+  frameWidget()
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->

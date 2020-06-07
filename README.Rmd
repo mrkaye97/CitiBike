@@ -22,6 +22,7 @@ library(rjson)
 library(mapview)
 library(magick)
 library(rprojroot)
+library(widgetframe)
 
 knitr::opts_chunk$set(echo = T, warning = F, message = F)
 
@@ -43,7 +44,7 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
 #### Common Routes
 
-```{r}
+```{r, align = 'c'}
 df <- read.csv(paste(PROJECT_ROOT, '/data/for_common_routes_leaflet.csv', sep = ""))
 
 grouped_coords <- function(coord, group, order) {
@@ -69,6 +70,7 @@ l <- leaflet(df) %>%
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
 
-l
+l %>%
+  frameWidget()
 ```
 
