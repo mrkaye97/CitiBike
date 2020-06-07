@@ -9,3 +9,8 @@
 #### Coronavirus Impact on Ridership
 
 <img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-overall-impact.svg">
+
+
+#### Common Routes
+
+<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html">
