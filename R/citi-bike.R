@@ -10,6 +10,7 @@ library(units)
 library(ggthemes)
 library(microbenchmark)
 library(parallel)
+library(bigreadr)
 
 readfiles <- function(x) {
   temp <- tempfile() 
