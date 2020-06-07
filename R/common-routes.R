@@ -153,12 +153,14 @@ pal <- colorFactor(
 # Map using Leaflet R
 l <- leaflet(res) %>%
   addProviderTiles("CartoDB.Positron") %>% 
+  setView(lng = median(res$lon), lat  = median(res$lat) - .02, zoom = 12.25) %>%
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(res)),
     lat = ~grouped_coords(lat, routeid, rownames(res)),
     color = ~pal(df$numroute))
   
+  
 
-mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""), vwidth = 700, vheight = 1000)
+mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""))
 saveWidget(l, file= paste(PROJECT_ROOT, "/viz/common-routes.html", sep = ""))
 

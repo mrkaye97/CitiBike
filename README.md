@@ -12,4 +12,6 @@
 
 
 #### Common Routes
+<center>
 <img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.png">
+</center>
