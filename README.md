@@ -17,7 +17,7 @@
     <script src="jquery.js"></script> 
     <script> 
     $(function(){
-      $("#includedContent").load("/viz/common-routes.html"); 
+      $("#includedContent").load("viz/common-routes.html"); 
     });
     </script> 
   </head> 
