@@ -13,5 +13,4 @@
 
 #### Common Routes
 
-<div id="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html" style="width:100%;height:216px;" class="leaflet html-widget"></div>
-  <script type="application/json" data-for="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html">
+<iframe src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-overall-impact.svg"></iframe>
