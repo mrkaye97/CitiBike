@@ -2,10 +2,11 @@
 title: "README"
 author: "Matt Kaye"
 date: "6/7/2020"
-output: github_document
+output: html_document
+always_allow_html: true
 ---
 
-```{r}
+```{r, include = F}
 rm(list = ls())
 
 library(tidyverse)
@@ -24,7 +25,7 @@ library(magick)
 library(rprojroot)
 library(widgetframe)
 
-knitr::opts_chunk$set(echo = T, warning = F, message = F)
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 ```
@@ -48,11 +49,11 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 df <- read.csv(paste(PROJECT_ROOT, '/data/for_common_routes_leaflet.csv', sep = ""))
 
 grouped_coords <- function(coord, group, order) {
-  data_frame(coord = coord, group = group) %>%
+  data.frame(coord = coord, group = group) %>%
     group_by(group) %>%
     purrrlyr::by_slice(~c(.$coord, NA), .to = "output") %>%
     left_join(
-      data_frame(group = group, order = order) %>% 
+      data.frame(group = group, order = order) %>% 
         distinct()) %>%
     arrange(order) %>%
     .$output %>%
@@ -63,12 +64,13 @@ pal <- colorFactor(
   palette = "magma", domain = NULL)
 
 # Map using Leaflet R
-leaflet(df) %>%
+l <- leaflet(df) %>%
   addProviderTiles("CartoDB.Positron") %>% 
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(df)),
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
 
+htmltools::tagList(l)
 ```
 
