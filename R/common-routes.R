@@ -157,7 +157,8 @@ l <- leaflet(res) %>%
     lng = ~grouped_coords(lon, routeid, rownames(res)),
     lat = ~grouped_coords(lat, routeid, rownames(res)),
     color = ~pal(df$numroute))
+  
 
-mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""))
+mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""), vwidth = 700, vheight = 1000)
 saveWidget(l, file= paste(PROJECT_ROOT, "/viz/common-routes.html", sep = ""))
 
