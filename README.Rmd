@@ -63,14 +63,12 @@ pal <- colorFactor(
   palette = "magma", domain = NULL)
 
 # Map using Leaflet R
-l <- leaflet(df) %>%
+leaflet(df) %>%
   addProviderTiles("CartoDB.Positron") %>% 
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(df)),
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
 
-l %>%
-  frameWidget()
 ```
 
