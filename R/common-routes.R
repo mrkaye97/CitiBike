@@ -12,6 +12,7 @@ library(parallel)
 library(leaflet)
 library(rjson)
 library(mapview)
+library(magick)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
@@ -153,7 +154,6 @@ pal <- colorFactor(
 # Map using Leaflet R
 l <- leaflet(res) %>%
   addProviderTiles("CartoDB.Positron") %>% 
-  setView(lng = median(res$lon), lat  = median(res$lat) - .02, zoom = 12.25) %>%
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(res)),
     lat = ~grouped_coords(lat, routeid, rownames(res)),
@@ -163,4 +163,8 @@ l <- leaflet(res) %>%
 
 mapshot(l, file = paste(PROJECT_ROOT, "/viz/common-routes.png", sep = ""))
 saveWidget(l, file= paste(PROJECT_ROOT, "/viz/common-routes.html", sep = ""))
+
+image_read(paste(PROJECT_ROOT, "/viz/common-routes.png", sep = "")) %>%
+  image_crop('300x450+335+150') %>%
+  image_write(paste(PROJECT_ROOT, "/viz/common-routes.svg", sep = ""), format = 'svg')
 
