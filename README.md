@@ -13,5 +13,5 @@
 
 #### Common Routes
 <figure class="video_container">
-<iframe src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-overall-impact.svg"></iframe>
+<iframe src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/common-routes.html"></iframe>
 </figure>
