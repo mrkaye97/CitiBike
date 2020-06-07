@@ -45,7 +45,8 @@ df <- st_join(nyc, temp, st_intersects, left = T) %>%
 plt <- df %>%
   ggplot(aes(boro_name, numrides, fill = year))+
   geom_bar(stat = 'identity', position = 'dodge')+
-  theme_fivethirtyeight()
+  theme_fivethirtyeight()+
+  scale_fill_viridis(option = 'plasma', discrete = TRUE)
 
 ggsave(filename = 'coronavirus-overall-impact.svg', 
        device = 'svg', 
