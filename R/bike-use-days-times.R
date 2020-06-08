@@ -72,7 +72,7 @@ p2 <- df %>%
   theme(legend.position = 'right', legend.direction = 'vertical', legend.title.align = .5)
 
 patchworkplot <- p1 / p2 + plot_layout(widths = c(4, 4), 
-                                       heights = unit(c(6, 6), c('cm', 'cm')),
+                                       heights = unit(c(6, 8), c('cm', 'cm')),
                                        guides = "collect") &
   scale_fill_viridis(option = 'plasma', begin = .5, end = .1, discrete = T)
 
@@ -80,9 +80,6 @@ ggsave(filename = 'coronavirus-and-day-dsn.svg',
        device = 'svg', 
        path = '/users/matt/documents/github/citibike/viz/', 
        plot = patchworkplot, 
-       dpi = 'retina',
-       units = 'in', 
-       height = 14, 
-       width = 12)
+       dpi = 'retina')
 
 
