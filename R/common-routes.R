@@ -135,6 +135,31 @@ for_common_routes_leaflet <- df %>%
   mutate(routeid = routeid %>% as.factor()) %>%
   inner_join(res, by = 'routeid')
 
+grouped_coords <- function(coord, group, order) {
+  data.frame(coord = coord, group = group) %>%
+    group_by(group) %>%
+    purrrlyr::by_slice(~c(.$coord, NA), .to = "output") %>%
+    left_join(
+      data.frame(group = group, order = order) %>% 
+        distinct()) %>%
+    arrange(order) %>%
+    .$output %>%
+    unlist()
+}
+## Plot Examples
+
+pal <- colorFactor(
+  palette = "magma", domain = NULL)
+#### Visualizing Commute Patterns – Heatmap of start and end stations by time of day
+
+# Map using Leaflet R
+leaflet(for_common_routes_leaflet) %>%
+  addProviderTiles("CartoDB.Positron") %>% 
+  addPolylines(
+    lng = ~grouped_coords(lon, routeid, rownames(for_common_routes_leaflet)),
+    lat = ~grouped_coords(lat, routeid, rownames(for_common_routes_leaflet)),
+    color = ~pal(for_common_routes_leaflet$numroute))
+
 write.csv(for_common_routes_leaflet, paste(PROJECT_ROOT, '/data/for_common_routes_leaflet.csv', sep = ""), row.names = F)
 
 
