@@ -44,5 +44,5 @@ fread(paste(PROJECT_ROOT, '/data/citibike_dat_1.csv', sep = "")) %>%
 <img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/commutes.svg">
 
 #### Visualizing Rides Broken Down by Year, Day of the Week, and Time of Day
-<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-and-day-dsn.svg">
+<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-and-day-dsn.svg" width="980" height="1000">
 
