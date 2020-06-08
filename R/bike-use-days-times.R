@@ -35,8 +35,8 @@ p1 <- df %>%
   facet_grid(ww ~ year, scales = 'free')+
   scale_x_continuous(breaks = c(6, 12, 18, 24), 
                      labels = c('6:00 AM', 'Noon', '6:00 PM', 'Midnight'))+
-  scale_fill_viridis(discrete = T, option = 'plasma', begin = .5, end = .1)+
-  theme_fivethirtyeight()
+  theme_fivethirtyeight()+
+  theme(legend.position = 'none')
 
 
 nyc <- st_read('https://data.cityofnewyork.us/api/geospatial/cpf4-rkhq?method=export&format=GeoJSON', 
@@ -69,15 +69,20 @@ p2 <- df %>%
   ggplot(aes(boro_name, numrides, fill = year))+
   geom_bar(stat = 'identity', position = 'dodge')+
   theme_fivethirtyeight()+
-  scale_fill_manual(values = c("#DD5E66FF", "#5901A5FF"))
+  theme(legend.position = 'right', legend.direction = 'vertical', legend.title.align = .5)
 
-patchworkplot <- p1 / p2 + plot_layout(widths = c(4, 4), heights = unit(c(4, 4), c('cm', 'cm')))
+patchworkplot <- p1 / p2 + plot_layout(widths = c(4, 4), 
+                                       heights = unit(c(6, 6), c('cm', 'cm')),
+                                       guides = "collect") &
+  scale_fill_viridis(option = 'plasma', begin = .5, end = .1, discrete = T)
 
 ggsave(filename = 'coronavirus-and-day-dsn.svg', 
        device = 'svg', 
        path = '/users/matt/documents/github/citibike/viz/', 
        plot = patchworkplot, 
        dpi = 'retina',
-       units = 'in')
+       units = 'in', 
+       height = 14, 
+       width = 12)
 
 
