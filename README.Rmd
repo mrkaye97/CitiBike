@@ -46,15 +46,13 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 #### Common Routes
 
 ```{r, align = 'c'}
-df <- read.csv(paste(PROJECT_ROOT, '/data/for_common_routes_leaflet.csv', sep = ""))
+df <- read.csv('https://raw.githubusercontent.com/mrkaye97/CitiBike/master/data/for_common_routes_leaflet.csv')
 
 grouped_coords <- function(coord, group, order) {
   data.frame(coord = coord, group = group) %>%
     group_by(group) %>%
     purrrlyr::by_slice(~c(.$coord, NA), .to = "output") %>%
-    left_join(
-      data.frame(group = group, order = order) %>% 
-        distinct()) %>%
+    left_join(data.frame(group = group, order = order) %>% distinct(), by = 'group') %>%
     arrange(order) %>%
     .$output %>%
     unlist()
@@ -64,13 +62,11 @@ pal <- colorFactor(
   palette = "magma", domain = NULL)
 
 # Map using Leaflet R
-l <- leaflet(df) %>%
+leaflet(df) %>%
   addProviderTiles("CartoDB.Positron") %>% 
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(df)),
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
-
-htmltools::tagList(l)
 ```
 
