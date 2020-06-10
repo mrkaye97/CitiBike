@@ -1,7 +1,5 @@
 ---
 title: "README"
-author: "Matt Kaye"
-date: "6/7/2020"
 output: html_document
 always_allow_html: true
 ---
@@ -29,8 +27,6 @@ knitr::opts_chunk$set(echo = F, warning = F, message = F)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 ```
-
-## Exploring the New York City CitiBike data
 
 ## Plots
 
