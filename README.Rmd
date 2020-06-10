@@ -40,7 +40,7 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
 #### Coronavirus Impact on Ridership
 
-<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-overall-impact.svg">
+<img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/coronavirus-and-day-dsn.svg">
 
 
 #### Common Routes
