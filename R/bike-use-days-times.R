@@ -26,7 +26,7 @@ df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T, pattern
 
 p1 <- df %>%
   mutate(year = year(starttime) %>% as.factor(),
-         dow = wday(starttime, label = T),
+         dow = lubridate::wday(starttime, label = T),
          ww = case_when(dow %in% c('Sat', 'Sun') ~ 'Weekend',
                         TRUE ~ 'Weekday') %>% as.factor(),
          hr = hour(starttime)) %>%
