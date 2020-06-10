@@ -45,6 +45,7 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
 #### Common Routes
 
+<center>
 ```{r, align = 'c'}
 df <- read.csv('https://raw.githubusercontent.com/mrkaye97/CitiBike/master/data/for_common_routes_leaflet.csv')
 
@@ -69,4 +70,4 @@ leaflet(df) %>%
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute))
 ```
-
+</center>
