@@ -5,22 +5,37 @@ date: "6/7/2020"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r, echo = F}
+knitr::opts_chunk$set(echo = T)
+```
 
-rm(list = ls())
-
-library(tidyverse)
-library(rprojroot)
-library(data.table)
-library(lubridate)
+```{r setup}
+suppressPackageStartupMessages(library(tidyverse)) 
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(library(rprojroot))
+suppressPackageStartupMessages(library(lubridate))
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 ```
 
+
 ## Exploring the New York City CitiBike data
 
 This project explores the CitiBike program data from New York City.
+
+A few notes:
+
+* The full project can be found [Here](https://mrkaye97.github.io/CitiBike/).
+* All R code is in `~/CitiBike/R`
+* All python code is in `~/CitiBike/python`
+* Some data used in certain files can be found in `~/CitiBike/data`, but much is pulled directly from online sources.
+
+
+### Setup
+
+The project requires no explicit setup. All data is either included in this repo or comes directly from the CitiBike website.
+
+A handful of R and Python packages are needed to run the project. See the bottom of this README for a list.
 
 ### Data
 
