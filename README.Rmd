@@ -1,7 +1,9 @@
 ---
 title: "README"
-output:
-  html_document: default
+output: 
+  html_document: 
+    self_contained: no
+always_allow_html: yes
 permalink: /index.html
 ---
 
@@ -67,7 +69,6 @@ l <- leaflet(df) %>%
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute)) 
 
-l %>%
-  frameWidget()
+l
 ```
 </center>
