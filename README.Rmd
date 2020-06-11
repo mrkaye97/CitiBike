@@ -2,7 +2,6 @@
 title: "README"
 output:
   html_document: default
-always_allow_html: yes
 permalink: /index.html
 ---
 
@@ -61,12 +60,14 @@ pal <- colorFactor(
   palette = "magma", domain = NULL)
 
 # Map using Leaflet R
-leaflet(df) %>%
+l <- leaflet(df) %>%
   addProviderTiles("CartoDB.Positron") %>% 
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(df)),
     lat = ~grouped_coords(lat, routeid, rownames(df)),
-    color = ~pal(df$numroute)) %>%
+    color = ~pal(df$numroute)) 
+
+l %>%
   frameWidget()
 ```
 </center>
