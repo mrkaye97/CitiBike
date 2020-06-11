@@ -66,6 +66,7 @@ leaflet(df) %>%
   addPolylines(
     lng = ~grouped_coords(lon, routeid, rownames(df)),
     lat = ~grouped_coords(lat, routeid, rownames(df)),
-    color = ~pal(df$numroute))
+    color = ~pal(df$numroute)) %>%
+  frameWidget()
 ```
 </center>
