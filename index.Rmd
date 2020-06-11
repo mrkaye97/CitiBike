@@ -40,7 +40,6 @@ PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
 #### Common Routes
 
-<center>
 ```{r, align = 'c'}
 df <- read.csv('https://raw.githubusercontent.com/mrkaye97/CitiBike/master/data/for_common_routes_leaflet.csv')
 
@@ -67,4 +66,3 @@ l <- leaflet(df) %>%
 
 print(l)
 ```
-</center>
