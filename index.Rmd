@@ -1,9 +1,6 @@
 ---
-title: "Index"
-author: "Matt Kaye"
-date: "6/10/2020"
-output: html_notebook: 
-always_allow_html: no
+title: "R Notebook"
+output: html_notebook
 ---
 
 ```{r, include = F}
@@ -25,7 +22,7 @@ library(magick)
 library(rprojroot)
 library(widgetframe)
 
-knitr::opts_chunk$set(echo = F, warning = F, message = F)
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 ```
