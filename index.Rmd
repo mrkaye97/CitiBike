@@ -1,9 +1,8 @@
 ---
-title: "README"
-output: 
-  html_document: 
-    self_contained: no
-always_allow_html: yes
+title: "Index"
+author: "Matt Kaye"
+date: "6/10/2020"
+output: html_notebook
 ---
 
 ```{r, include = F}
