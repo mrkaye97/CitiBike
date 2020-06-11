@@ -70,6 +70,7 @@ l <- leaflet(df) %>%
     lat = ~grouped_coords(lat, routeid, rownames(df)),
     color = ~pal(df$numroute)) 
 
-l
+l %>%
+  frameWidget()
 ```
 </center>
