@@ -2,7 +2,10 @@
 title: "Index"
 author: "Matt Kaye"
 date: "6/10/2020"
-output: html_notebook
+output: 
+  html_notebook: 
+    self_contained: no
+always_allow_html: yes
 ---
 
 ```{r, include = F}
