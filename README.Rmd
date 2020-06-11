@@ -1,9 +1,9 @@
 ---
 title: "README"
 output:
-  github_document: default
   html_document: default
 always_allow_html: yes
+permalink: /index.html
 ---
 
 ```{r, include = F}
