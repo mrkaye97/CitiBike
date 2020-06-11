@@ -2,9 +2,7 @@
 title: "Index"
 author: "Matt Kaye"
 date: "6/10/2020"
-output: 
-  html_notebook: 
-    self_contained: yes
+output: html_notebook: 
 always_allow_html: no
 ---
 
