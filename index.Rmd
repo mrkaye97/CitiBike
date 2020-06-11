@@ -5,7 +5,7 @@ date: "6/10/2020"
 output: 
   html_notebook: 
     self_contained: yes
-always_allow_html: yes
+always_allow_html: no
 ---
 
 ```{r, include = F}
