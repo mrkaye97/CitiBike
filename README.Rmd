@@ -1,7 +1,9 @@
 ---
 title: "README"
-output: html_document
-always_allow_html: true
+output:
+  github_document: default
+  html_document: default
+always_allow_html: yes
 ---
 
 ```{r, include = F}
