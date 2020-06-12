@@ -34,7 +34,7 @@ p1 <- df %>%
   geom_bar()+
   facet_grid(ww ~ year, scales = 'free')+
   scale_x_continuous(breaks = c(6, 12, 18, 24), 
-                     labels = c('6:00 AM', 'Noon', '6:00 PM', 'Midnight'))+
+                     labels = c('06:00', 'Noon', '18:00', 'Midnight'))+
   theme_fivethirtyeight()+
   theme(legend.position = 'none')
 
