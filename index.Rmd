@@ -23,8 +23,42 @@ library(rprojroot)
 library(widgetframe)
 
 knitr::opts_chunk$set(echo = T, warning = F, message = F)
+```
 
+```{r setup}
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
+```
+
+## Exploring the New York City CitiBike data
+
+This project explores the CitiBike program data from New York City.
+
+A few notes:
+
+* The full project (Github repo) can be found [here](https://mrkaye97.github.io/CitiBike/).
+* All R code is in `~/CitiBike/R`
+* All python code is in `~/CitiBike/python`
+* Some data used in certain files can be found in `~/CitiBike/data`, but much is pulled directly from online sources.
+
+### Setup
+
+The project requires no explicit setup. All data is either included in this repo or comes directly from the CitiBike website.
+
+A handful of R and Python packages are needed to run the project. See the bottom of this README for a list.
+
+### Data
+
+The data comes from the [CitiBike program](https://www.citibikenyc.com/system-data) directly, and is publicly available for download.
+
+Below is a glimpse at the structure of the data
+
+```{r}
+fread(paste(PROJECT_ROOT, '/data/citibike_dat_1.csv', sep = ""), verbose = F, showProgress = F) %>%
+  mutate(starttime = starttime %>% as_datetime(),
+         stoptime = stoptime %>% as_datetime(),
+         bikeid = bikeid %>% as.factor()) %>%
+  sample_n(size = 100) %>%
+  glimpse()
 ```
 
 ## Plots
