@@ -1,6 +1,7 @@
 ---
 title: "Exploring the CitiBike Data in New York"
 output: html_notebook
+url: mrkaye97.github.io/CitiBike/
 ---
 
 ```{r, include = F}
