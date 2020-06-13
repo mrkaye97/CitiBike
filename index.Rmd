@@ -105,3 +105,9 @@ l <- leaflet(df) %>%
 suppressWarnings(l)
 ```
 </center>
+
+```{bash, include = F}
+rm index.html
+ln -s index.nb.html index.html
+```
+
