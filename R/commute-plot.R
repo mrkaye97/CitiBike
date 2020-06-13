@@ -11,10 +11,11 @@ library(ggthemes)
 library(microbenchmark)
 library(parallel)
 library(bigreadr)
+library(rprojroot)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T) %>%
+df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), pattern = "citibike*", full.names = T) %>%
   map(fread) %>%
   rbindlist() %>%
   filter(year(starttime) == 2019)
@@ -54,7 +55,7 @@ ampms <- c('a', 'p', 'a', 'p')
 ses <- c('s', 's', 'e', 'e')
 cats <- c('ams', 'pms', 'ame', 'pme')
 
-full <- mcmapply(times, ampm = c(ampms), stend = c(ses), currcat = c(cats), SIMPLIFY = F, mc.cores = cores) %>%
+full <- mcmapply(times, ampm = c(ampms), stend = c(ses), currcat = c(cats), SIMPLIFY = F, mc.cores = parallel::detectCores()) %>%
   rbindlist(fill = T) %>%
   mutate(sid = coalesce(esid, ssid),
          esid = NULL,
@@ -85,6 +86,7 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
   ungroup() %>%
   filter(boro_name == 'Manhattan') %>%
   mutate('Number of Rides (Log Scale)' = log(count),
+         'Number of Rides (Hundreds)' = count / 100,
          category = fct_recode(category, 
                                'AM Start' = 'ams',
                                'AM End' = 'ame',
@@ -93,8 +95,8 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
 
 plt <- df %>%
   ggplot()+
-  geom_sf(aes(fill = `Number of Rides (Log Scale)`), na.rm = T)+
-  scale_fill_viridis(option = 'plasma', alpha = .8, na.value = 'black')+
+  geom_sf(aes(fill = `Number of Rides (Hundreds)`), na.rm = T)+
+  scale_fill_viridis(option = 'plasma', alpha = .8, na.value = 'black', breaks = c(400, 800, 1200, 1600))+
   theme_fivethirtyeight()+
   theme(axis.text = element_blank())+
   facet_wrap(~category %>% fct_relevel(c('AM Start', 'AM End', 'PM Start', 'PM End')), 
