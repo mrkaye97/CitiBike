@@ -84,9 +84,13 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
   group_by(ntacode, category, boro_name) %>%
   summarize(count = sum(count)) %>%
   ungroup() %>%
+  group_by(boro_name) %>%
+  mutate(prop = 100 * count / sum(count, na.rm = T)) %>%
+  ungroup() %>%
   filter(boro_name == 'Manhattan') %>%
   mutate('Number of Rides (Log Scale)' = log(count),
          'Number of Rides (Hundreds)' = count / 100,
+         'Multiplicative Factor of Rides Above Average' = count / mean(count, na.rm = T),
          category = fct_recode(category, 
                                'AM Start' = 'ams',
                                'AM End' = 'ame',
@@ -94,9 +98,9 @@ df <- st_join(all_nbhds, full, st_intersects, left = T) %>%
                                'PM End' = 'pme'))
 
 plt <- df %>%
-  ggplot()+
-  geom_sf(aes(fill = `Number of Rides (Hundreds)`), na.rm = T)+
-  scale_fill_viridis(option = 'plasma', alpha = .8, na.value = 'black', breaks = c(400, 800, 1200, 1600))+
+  ggplot(aes(alpha = as.numeric(!is.na(`Multiplicative Factor of Rides Above Average`))))+
+  geom_sf(aes(fill = `Multiplicative Factor of Rides Above Average`))+
+  scale_fill_viridis(option = 'plasma')+
   theme_fivethirtyeight()+
   theme(axis.text = element_blank())+
   facet_wrap(~category %>% fct_relevel(c('AM Start', 'AM End', 'PM Start', 'PM End')), 
@@ -106,7 +110,8 @@ plt <- df %>%
   guides(shape = guide_legend(label.position = "bottom", 
                               title.position = "top", title.vjust = 0.8), 
          color = guide_legend(label.position = "top", 
-                              title.position = "top", title.vjust=0.4))
+                              title.position = "top", title.vjust=0.4))+
+  scale_alpha(guide = 'none')
 
 ggsave(filename = 'commutes.svg', 
        device = 'svg', 
