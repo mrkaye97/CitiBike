@@ -11,10 +11,11 @@ library(ggthemes)
 library(microbenchmark)
 library(parallel)
 library(bigreadr)
+library(rprojroot)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T) %>%
+df <- list.files(paste(PROJECT_ROOT, '/data', sep = ""), full.names = T, pattern = '') %>%
   map(fread) %>%
   rbindlist() %>%
   filter(year(starttime) == 2019)
