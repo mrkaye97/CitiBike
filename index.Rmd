@@ -1,6 +1,9 @@
 ---
 title: "Exploring the CitiBike Data in New York"
-output: html_notebook
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
 ---
 
 ```{r, include = F}
@@ -25,10 +28,6 @@ library(widgetframe)
 knitr::opts_chunk$set(echo = T, warning = F, message = F)
 ```
 
-```{r setup}
-PROJECT_ROOT <- find_root('CitiBike.Rproj')
-```
-
 ## Exploring the New York City CitiBike data
 
 This project explores the CitiBike program data from New York City.
@@ -40,15 +39,23 @@ A few notes:
 * All python code is in `~/CitiBike/python`
 * Some data used in certain files can be found in `~/CitiBike/data`, but much is pulled directly from online sources.
 
-### Setup
+***
+
+## Setup
 
 The project requires no explicit setup. All data is either included in this repo or comes directly from the CitiBike website.
 
 A handful of R and Python packages are needed to run the project. See the bottom of this README for a list.
 
-### Data
+*** 
+
+## Data
 
 The data comes from the [CitiBike program](https://www.citibikenyc.com/system-data) directly, and is publicly available for download.
+
+```{r setup}
+PROJECT_ROOT <- find_root('CitiBike.Rproj')
+```
 
 Below is a glimpse at the structure of the data
 
@@ -61,7 +68,9 @@ fread(paste(PROJECT_ROOT, '/data/citibike_dat_1.csv', sep = ""), verbose = F, sh
   glimpse()
 ```
 
-### Plots
+***
+
+## Plots
 
 #### Visualizing Commute Patterns -- Heatmap of start and end stations by time of day
 <img src="https://raw.githubusercontent.com/mrkaye97/CitiBike/master/viz/commutes.svg">
@@ -101,7 +110,7 @@ l <- leaflet(df) %>%
 ```
 
 <center>
-```{r, fig.width = 9, echo = F}
+```{r, fig.width = 7, echo = F}
 suppressWarnings(l)
 ```
 </center>
