@@ -19,10 +19,10 @@ df %>%
   theme_fivethirtyeight()
 
 ss <- list()
-ss <- AddTrig(ss, df %>% pull(numrides), period = 7, frequencies = 52)
+ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 7, season.duration = 1)
 #ss <- AddMonthlyAnnualCycle(ss, df %>% pull(numrides), date.of.first.observation = df$date[1])
 #ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 26, season.duration = 14)
-ss <- AddLocalLinearTrend(ss, df %>% pull(numrides))
+ss <- AddSemilocalLinearTrend(ss, df %>% pull(numrides))
 ss <- AddAutoAr(ss, df %>% pull(numrides))
 ss <- AddTrig(ss, df %>% pull(numrides), period = 365, frequencies = 1, method = 'harmonic')
 
@@ -34,7 +34,7 @@ burnin <- 1000
 tibble(date = df$date, 
        data = forecast::tsclean(df$numrides),
        ar = colMeans(model1$state.contributions[-(1:burnin),"Ar1",]),
-       week = colMeans(model1$state.contributions[-(1:burnin),"trig.7",]),
+       week = colMeans(model1$state.contributions[-(1:burnin),"seasonal.7.1",]),
        trend = colMeans(model1$state.contributions[-(1:burnin),"trend",]),
        seas = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
 #       reg = colMeans(model1$state.contributions[-(1:burnin),"regression",]),
@@ -45,7 +45,7 @@ tibble(date = df$date,
   facet_wrap(~component, scales = 'free', ncol = 1)
 
 
-n <- 600
+n <- 900
 preds <- predict(model1, horizon = n)
 new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
                   numrides = preds$mean,
