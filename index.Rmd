@@ -115,6 +115,32 @@ suppressWarnings(l)
 ```
 </center>
 
+
+We might also be interested in a long-term forecast of ridership. First, we inspect how ridership trends over time.
+
+```{r}
+rm(list = ls())
+
+library(bsts)
+
+load(url('https://github.com/mrkaye97/CitiBike/blob/master/R/ridership_bsts.Rdata?raw=true'))
+
+df <- df %>%
+  mutate(movavg = zoo::rollmean(numrides, 7, fill, align = 'center', fill = NA))
+
+df %>% 
+  ggplot(aes(x = date))+
+  geom_line(aes(y = numrides / 10**3), alpha = .4)+
+  geom_line(aes(y = movavg / 10**3))+
+  theme_fivethirtyeight()+
+  labs(title = 'Total Rides by Date',
+       caption = 'Dark black line is a 7-day moving average.\nPale gray line is the actual trend',
+       y = 'Rides (Thousands)')+
+  theme(axis.title.y = element_text())
+```
+
+Clearly, this series is highly volatile. We would expect there to be at least two seasonal components at play here: One for the time of the year (better weather in the summer means more bike rides) and one for day of the week (maybe there are more rides on weekdays than weekends because New Yorkers are using the bikes to commute). There is additionally quite likely to be an autoregressive compnent, since the number of rides today likely depends on the number of rides yesterday, and a trend component, since ridership might be increasing over time.
+
 ```{bash, include = F}
 rm index.html
 ln -s index.nb.html index.html
