@@ -110,7 +110,7 @@ l <- leaflet(df) %>%
 ```
 
 <center>
-```{r, fig.width = 7, echo = F}
+```{r, fig.width = 8, echo = F}
 suppressWarnings(l)
 ```
 </center>
@@ -131,7 +131,7 @@ df <- df %>%
 
 
 <center>
-```{r, echo = F}
+```{r, echo = F, dpi = 300}
 df %>% 
   ggplot(aes(x = date))+
   geom_line(aes(y = numrides / 10**3), alpha = .4)+
@@ -146,15 +146,15 @@ df %>%
 
 Clearly, this series is highly volatile. We would expect there to be at least two seasonal components at play here: One for the time of the year (better weather in the summer means more bike rides) and one for day of the week (maybe there are more rides on weekdays than weekends because New Yorkers are using the bikes to commute). There is additionally quite likely to be an autoregressive compnent, since the number of rides today likely depends on the number of rides yesterday, and a trend component, since ridership might be increasing over time.
 
-Consider the following plot, which decomposes the time series into its components.
+To model this time series, we turn to Bayesian Structural Time Series (BSTS), a technique that lets us decompose time series into its components, apply the Kalman Filter to estimate filtered values and project future values for the series, and do it all in a fully Bayesian paradigm. Consider the following plot, which decomposes the time series into its components.
 
 <center>
-```{r, fig.height = 10, fig.width=8, echo = F}
+```{r, fig.height = 10, fig.width=8, echo = F, dpi = 300}
 burnin <- 1000
 tibble(date = df$date, 
        "Actual Data" = forecast::tsclean(df$numrides),
        'AR' = colMeans(model1$state.contributions[-(1:burnin),"Ar1",]),
-       "Daily Seasonality" = colMeans(model1$state.contributions[-(1:burnin),"trig.7",]),
+       "Daily Seasonality" = colMeans(model1$state.contributions[-(1:burnin),"seasonal.7.1",]),
        "Trend" = colMeans(model1$state.contributions[-(1:burnin),"trend",]),
        "Seasonality" = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
        ) %>%
@@ -172,10 +172,31 @@ Here we see each of these components that we discussed separated out. In yellow,
 
 Finally, we can use this BSTS model to predict out future ridership. The predictions from our model look like this:
 
-```{r}
+```{r, echo = F, dpi = 300}
+n <- 10
+preds <- predict(model1, horizon = n)
+new <- data.frame(date = seq(max(df$date), max(df$date) + n - 1, by = '1 day'),
+                  numrides = preds$mean,
+                  upper = preds$interval[2,],
+                  lower = preds$interval[1,],
+                  type = 'pred')
+
+df %>%
+  mutate(type = 'orig') %>%
+  bind_rows(new) %>%
+  filter(date > max(date) - 50) %>%
+  ggplot(aes(date, numrides, color = type))+
+  geom_line()+
+  geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
+
+```
+
+The predictions shown above are 10 steps (days) into the future. We might also be interested in a longer-term forecast. See the plot below for predictions over the next calendar year:
+
+```{r, echo = F, dpi = 300}
 n <- 365
 preds <- predict(model1, horizon = n)
-new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
+new <- data.frame(date = seq(max(df$date), max(df$date) + n - 1, by = '1 day'),
                   numrides = preds$mean,
                   upper = preds$interval[2,],
                   lower = preds$interval[1,],
@@ -190,6 +211,10 @@ df %>%
   geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
 
 ```
+
+Notice here that the trigonometric component shows up in our forecast (the curvature over longer time windows), as does the day of the week component (the jaggedness of the curve over shorter time windows), just as we would expect. 
+
+In all, Bayesian Structural Time Series is an extremely powerful method of time series analysis, allowing us to decompose time series easily and forecast the values of the series into both the near and far future. One major advantage of the BSTS method over a more common ARIMA approach is that there is no need to ensure stationarity before fitting the model. In the BSTS approach, we can simply specify a trend component such that the current state is a function of the previous state times some rate of change, and achieve an increasing trend over time. In addition, the BSTS approach lets us determine filtered values of the series through the use of the Kalman Filter, which is particularly helpful in time series problems in which we are trying to understand the underlying "latent" process (state equation) when the data itself is noisy. This might come in handy when trying to predict the temperature inside of a rocket engine over time, for example, since the sensor recording the temperature data would report noisy measures since it would need to be outside of the engine itself, so as not to melt. Finally, BSTS is fully Bayesian, which means we can incorporate an arbitrary amount of prior information, and can get a true understanding of the posterior densities of our predictions and parameter estimates.
 
 ```{bash, include = F}
 rm index.html
