@@ -117,7 +117,7 @@ suppressWarnings(l)
 
 ***
 
-## Time Series Analysis Using Bayesian Strutural Time Series 
+## Time Series Analysis Using Bayesian Structural Time Series 
 
 We might also be interested in a long-term forecast of ridership. First, we inspect how ridership trends over time.
 
