@@ -11,8 +11,7 @@ library(XML)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-df <- read_csv('data/daily_rides.csv') %>%
-  filter(year(date) < 2019)
+df <- read_csv('data/daily_rides.csv')
 
 df %>% 
   ggplot(aes(date, numrides))+
@@ -20,33 +19,33 @@ df %>%
   theme_fivethirtyeight()
 
 ss <- list()
-ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 7, season.duration = 1)
-ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 52)
-ss <- AddSemilocalLinearTrend(ss, df %>% pull(numrides))
+ss <- AddTrig(ss, df %>% pull(numrides), period = 7, frequencies = 52)
+#ss <- AddMonthlyAnnualCycle(ss, df %>% pull(numrides), date.of.first.observation = df$date[1])
+#ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 26, season.duration = 14)
+ss <- AddLocalLinearTrend(ss, df %>% pull(numrides))
 ss <- AddAutoAr(ss, df %>% pull(numrides))
-ss <- AddTrig(ss, df %>% pull(numrides), period = 365, frequencies = 1)
+ss <- AddTrig(ss, df %>% pull(numrides), period = 365, frequencies = 1, method = 'harmonic')
 
-model1 <- bsts(df$numrides,
+model1 <- bsts(forecast::tsclean(df$numrides),
                state.specification = ss,
-               niter = 1000)
+               niter = 1500)
 
-burnin <- 500
+burnin <- 1000
 tibble(date = df$date, 
-       data = df$numrides,
+       data = forecast::tsclean(df$numrides),
        ar = colMeans(model1$state.contributions[-(1:burnin),"Ar1",]),
-       week = colMeans(model1$state.contributions[-(1:burnin),"seasonal.7.1",]),
+       week = colMeans(model1$state.contributions[-(1:burnin),"trig.7",]),
        trend = colMeans(model1$state.contributions[-(1:burnin),"trend",]),
-       seas = colMeans(model1$state.contributions[-(1:burnin),"seasonal.52.1",]),
-       trig = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
+       seas = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
 #       reg = colMeans(model1$state.contributions[-(1:burnin),"regression",]),
        ) %>%
-  pivot_longer(c(data, ar, trend, seas, week, trig), names_to = 'component', values_to = 'value') %>%
+  pivot_longer(c(data, ar, trend, seas, week), names_to = 'component', values_to = 'value') %>%
   ggplot(aes(x = date, y = value, color = component))+
   geom_line()+
   facet_wrap(~component, scales = 'free', ncol = 1)
 
 
-n <- 400
+n <- 600
 preds <- predict(model1, horizon = n)
 new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
                   numrides = preds$mean,
