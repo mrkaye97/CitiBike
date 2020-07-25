@@ -115,6 +115,9 @@ suppressWarnings(l)
 ```
 </center>
 
+***
+
+## Time Series Analysis Using Bayesian Strutural Time Series 
 
 We might also be interested in a long-term forecast of ridership. First, we inspect how ridership trends over time.
 
@@ -168,9 +171,9 @@ tibble(date = df$date,
 ```
 </center>
 
-Here we see each of these components that we discussed separated out. In yellow, we have the true values of the observations. The purple and green lines are the two seasonal components: green accounting for the seasons in the year, and purple accounting for day of the week effects. The red is an autoregressive term, and the blue is the remainder -- the underlying trend.
+Here we have fit a BSTS model and plot each of the components that we discussed separated out. In red, we have the true values of the observations. The yellow curve is the autoregressive component (i.e. how much ridership in day $t$ depends on ridership in day $t-1$). The green and blue curves are the seasonal components, with green tracking daily "seasonality" (i.e. the day of the week effect) and blue tracking seasonality in the literal sense: differences between the actual seasons. Finally, in purple is the underlying trend.
 
-Finally, we can use this BSTS model to predict out future ridership. The predictions from our model look like this:
+We can use this BSTS model to predict out future ridership. The predictions from our model look like this:
 
 ```{r, echo = F, dpi = 300}
 n <- 10
@@ -185,9 +188,12 @@ df %>%
   mutate(type = 'orig') %>%
   bind_rows(new) %>%
   filter(date > max(date) - 50) %>%
-  ggplot(aes(date, numrides, color = type))+
+  ggplot(aes(date, numrides / 10**3, color = type))+
   geom_line()+
-  geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
+  geom_ribbon(aes(ymax = upper / 10**3, ymin = lower / 10**3), alpha = .3, fill = 'gray', color = 'darkgray')+
+  theme_fivethirtyeight()+
+  theme(legend.position = 'bottom', legend.direction = 'horizontal', axis.title.y = element_text())+
+  labs(y = "Rides (Thousands)", caption = 'Gray ribbon denotes 95% credible interval for the mean prediction', color = 'Type')
 
 ```
 
@@ -206,9 +212,12 @@ df %>%
   mutate(type = 'orig') %>%
   bind_rows(new) %>%
   filter(date > max(date) - 750) %>%
-  ggplot(aes(date, numrides, color = type))+
+  ggplot(aes(date, numrides / 10**3, color = type))+
   geom_line()+
-  geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
+  geom_ribbon(aes(ymax = upper / 10**3, ymin = lower / 10**3), alpha = .3, fill = 'gray', color = 'darkgray')+
+  theme_fivethirtyeight()+
+  theme(legend.position = 'bottom', legend.direction = 'horizontal', axis.title.y = element_text())+
+  labs(y = "Rides (Thousands)", caption = 'Gray ribbon denotes 95% credible interval for the mean prediction', color = 'Type')
 
 ```
 
