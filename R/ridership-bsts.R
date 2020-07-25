@@ -11,7 +11,8 @@ library(XML)
 
 PROJECT_ROOT <- find_root('CitiBike.Rproj')
 
-df <- read_csv('data/daily_rides.csv')
+df <- read_csv('data/daily_rides.csv') %>%
+  filter(year(date) < 2019)
 
 df %>% 
   ggplot(aes(date, numrides))+
@@ -19,10 +20,11 @@ df %>%
   theme_fivethirtyeight()
 
 ss <- list()
-ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 52, season.duration = 7)
-ss <- AddTrig(ss, df %>% pull(numrides), period = 365, frequencies = 1)
+ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 7, season.duration = 1)
+ss <- AddSeasonal(ss, df %>% pull(numrides), nseasons = 52)
 ss <- AddSemilocalLinearTrend(ss, df %>% pull(numrides))
 ss <- AddAutoAr(ss, df %>% pull(numrides))
+ss <- AddTrig(ss, df %>% pull(numrides), period = 365, frequencies = 1)
 
 model1 <- bsts(df$numrides,
                state.specification = ss,
@@ -32,18 +34,19 @@ burnin <- 500
 tibble(date = df$date, 
        data = df$numrides,
        ar = colMeans(model1$state.contributions[-(1:burnin),"Ar1",]),
-       week = colMeans(model1$state.contributions[-(1:burnin),"seasonal.52.7",]),
+       week = colMeans(model1$state.contributions[-(1:burnin),"seasonal.7.1",]),
        trend = colMeans(model1$state.contributions[-(1:burnin),"trend",]),
-       trig = colMeans(model1$state.contributions[-(1:burnin),"trig.365",]),
+       seas = colMeans(model1$state.contributions[-(1:burnin),"seasonal.52.1",]),
+       trig = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
 #       reg = colMeans(model1$state.contributions[-(1:burnin),"regression",]),
        ) %>%
-  pivot_longer(c(data, ar, week, trend, trig), names_to = 'component', values_to = 'value') %>%
+  pivot_longer(c(data, ar, trend, seas, week, trig), names_to = 'component', values_to = 'value') %>%
   ggplot(aes(x = date, y = value, color = component))+
   geom_line()+
   facet_wrap(~component, scales = 'free', ncol = 1)
 
 
-n <- 100
+n <- 400
 preds <- predict(model1, horizon = n)
 new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
                   numrides = preds$mean,
@@ -54,9 +57,11 @@ new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
 df %>%
   mutate(type = 'orig') %>%
   bind_rows(new) %>%
-  filter(date > max(date) - 250) %>%
+  filter(date > max(date) - 1500) %>%
   ggplot(aes(date, numrides, color = type))+
   geom_line()+
   geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
 
+
+save(model1, df, file = 'R/ridership_bsts.Rdata')
 
