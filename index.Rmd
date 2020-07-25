@@ -118,7 +118,7 @@ suppressWarnings(l)
 
 We might also be interested in a long-term forecast of ridership. First, we inspect how ridership trends over time.
 
-```{r}
+```{r, fig.height = 6, fig.width = 8}
 rm(list = ls())
 
 library(bsts)
@@ -127,7 +127,11 @@ load(url('https://github.com/mrkaye97/CitiBike/blob/master/R/ridership_bsts.Rdat
 
 df <- df %>%
   mutate(movavg = zoo::rollmean(numrides, 7, fill, align = 'center', fill = NA))
+```
 
+
+<center>
+```{r, echo = F}
 df %>% 
   ggplot(aes(x = date))+
   geom_line(aes(y = numrides / 10**3), alpha = .4)+
@@ -138,8 +142,54 @@ df %>%
        y = 'Rides (Thousands)')+
   theme(axis.title.y = element_text())
 ```
+</center>
 
 Clearly, this series is highly volatile. We would expect there to be at least two seasonal components at play here: One for the time of the year (better weather in the summer means more bike rides) and one for day of the week (maybe there are more rides on weekdays than weekends because New Yorkers are using the bikes to commute). There is additionally quite likely to be an autoregressive compnent, since the number of rides today likely depends on the number of rides yesterday, and a trend component, since ridership might be increasing over time.
+
+Consider the following plot, which decomposes the time series into its components.
+
+<center>
+```{r, fig.height = 10, fig.width=8, echo = F}
+burnin <- 1000
+tibble(date = df$date, 
+       "Actual Data" = forecast::tsclean(df$numrides),
+       'AR' = colMeans(model1$state.contributions[-(1:burnin),"Ar1",]),
+       "Daily Seasonality" = colMeans(model1$state.contributions[-(1:burnin),"trig.7",]),
+       "Trend" = colMeans(model1$state.contributions[-(1:burnin),"trend",]),
+       "Seasonality" = colMeans(model1$state.contributions[-(1:burnin),"trig.365", ])
+       ) %>%
+  pivot_longer(c(2:6), names_to = 'component', values_to = 'value') %>%
+  ggplot(aes(x = date, y = value / 10**3, color = component))+
+  geom_line()+
+  facet_wrap(~component, scales = 'free', ncol = 1)+
+  theme(legend.position = 'bottom', legend.direction = 'horizontal', axis.title.y = element_text())+
+  theme_fivethirtyeight()+
+  labs(y = "Rides (Thousands)", color = 'Component')
+```
+</center>
+
+Here we see each of these components that we discussed separated out. In yellow, we have the true values of the observations. The purple and green lines are the two seasonal components: green accounting for the seasons in the year, and purple accounting for day of the week effects. The red is an autoregressive term, and the blue is the remainder -- the underlying trend.
+
+Finally, we can use this BSTS model to predict out future ridership. The predictions from our model look like this:
+
+```{r}
+n <- 365
+preds <- predict(model1, horizon = n)
+new <- data.frame(date = seq(max(df$date)+1, max(df$date) + n , by = '1 day'),
+                  numrides = preds$mean,
+                  upper = preds$interval[2,],
+                  lower = preds$interval[1,],
+                  type = 'pred')
+
+df %>%
+  mutate(type = 'orig') %>%
+  bind_rows(new) %>%
+  filter(date > max(date) - 750) %>%
+  ggplot(aes(date, numrides, color = type))+
+  geom_line()+
+  geom_ribbon(aes(ymax = upper, ymin = lower, alpha = .1), fill = 'gray', color = 'darkgray')
+
+```
 
 ```{bash, include = F}
 rm index.html
