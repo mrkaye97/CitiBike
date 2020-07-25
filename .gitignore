@@ -1,6 +1,7 @@
 .Rproj.user
 .Rhistory
 .RData
+!ridership_bsts.Rdata
 .Ruserdata
 .DS_Store
 .Rproj
